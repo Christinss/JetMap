@@ -49,20 +49,7 @@ This project follows **Clean Architecture** principles:
 
 ## 📁 Project Structure
 
-📁 app/src/main/java/com/example/jetmap/
-├── 📁 data/
-│ ├── 📁 network/ # API models and services
-│ ├── 📁 repository/ # Data repository implementations
-│ └── LocationManager.kt # Location services abstraction
-├── 📁 di/ # Dependency injection modules
-├── 📁 ui/
-│ ├── 📁 views/ # Compose UI components
-│ ├── 📁 theme/ # Material 3 theming
-│ ├── ErrorMessage.kt
-│ └── MainActivityViewModel.kt
-├── 📁 utils/ # Utility classes and constants
-├── JetMapApplication.kt # Application class with Hilt setup 
-└── MainActivity.kt # Main activity with Compose
+![Project Structure](screenshots/project_structure.png)
 
 ## 📋 Setup Instructions
 
@@ -96,9 +83,13 @@ This project follows **Clean Architecture** principles:
 
 ## 📸 Screenshots
 
-| Map View                              | Parking Spot Details                                          | Permission Request                                   | Loading State                                   |
-|---------------------------------------|---------------------------------------------------------------|------------------------------------------------------|-------------------------------------------------|
-| ![Map View](screenshots/map_view.png) | ![Parking Spot Details](screenshots/parking_spot_details.png) | ![Permissions](screenshots/location_permissions.png) | ![Loading State](screenshots/loading_state.png) |
+| Map View                              | Parking Spot Details                                     |
+|---------------------------------------|----------------------------------------------------------|
+| ![Map View](screenshots/map_view.png) | ![Parking Details](screenshots/parking_spot_details.png) |
+
+| Location Permissions                                 | Loading State                             |
+|------------------------------------------------------|-------------------------------------------|
+| ![Permissions](screenshots/location_permissions.png) | ![Loading](screenshots/loading_state.png) |
 
 ## 🙏 Acknowledgments
 
