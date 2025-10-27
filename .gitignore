@@ -1,0 +1,37 @@
+# Android Studio
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+
+# Build artifacts
+/build/
+.gradle/
+*.apk
+*.aab
+*.dex
+*.jar
+*.class
+
+# API Keys and Secrets
+secrets.properties
+local.properties
+local.defaults.properties
+
+# OS files
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# External native build
+.externalNativeBuild
+.cxx
+
+# Captures
+/captures
