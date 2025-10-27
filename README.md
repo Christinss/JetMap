@@ -49,7 +49,7 @@ This project follows **Clean Architecture** principles:
 
 ## 📁 Project Structure
 
-![Project Structure](screenshots/project_structure.png)
+<img src="screenshots/project_structure.png" width="300" height="auto" alt="Project Structure">
 
 ## 📋 Setup Instructions
 
@@ -83,13 +83,13 @@ This project follows **Clean Architecture** principles:
 
 ## 📸 Screenshots
 
-| Map View                              | Parking Spot Details                                     |
-|---------------------------------------|----------------------------------------------------------|
-| ![Map View](screenshots/map_view.png) | ![Parking Details](screenshots/parking_spot_details.png) |
+## 📱 Screenshots
 
-| Location Permissions                                 | Loading State                             |
-|------------------------------------------------------|-------------------------------------------|
-| ![Permissions](screenshots/location_permissions.png) | ![Loading](screenshots/loading_state.png) |
+| Map View | Loading State |
+|----------|---------------------|
+| <img src="screenshots/map_view.png" width="280" height="auto" alt="Map View"> | <img src="screenshots/loading_state.png" width="280" height="auto" alt="Loading"> |
+| Parking Spot Details | Location Permissions |
+| <img src="screenshots/parking_spot_details.png" width="280" height="auto" alt="Parking Details"> | <img src="screenshots/location_permissions.png" width="280" height="auto" alt="Permissions"> |
 
 ## 🙏 Acknowledgments
 
