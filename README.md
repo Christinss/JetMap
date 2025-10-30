@@ -31,8 +31,8 @@ This is a **demo project**, not production-ready code.
 
 ### Key Libraries
 - **Hilt** - Dependency injection
-- **Retrofit** - HTTP client for API calls
-- **Moshi** - JSON serialization
+- **Retrofit** - Type-safe HTTP client
+- **Moshi** - Modern JSON library
 - **Google Maps Compose** - Maps integration
 - **Coroutines** - Asynchronous programming
 - **Accompanist Permissions** - Permission handling
@@ -83,13 +83,11 @@ This project follows **Clean Architecture** principles:
 
 ## 📸 Screenshots
 
-## 📱 Screenshots
-
-| Map View | Loading State |
-|----------|---------------------|
-| <img src="screenshots/map_view.png" width="280" height="auto" alt="Map View"> | <img src="screenshots/loading_state.png" width="280" height="auto" alt="Loading"> |
-| Parking Spot Details | Location Permissions |
-| <img src="screenshots/parking_spot_details.png" width="280" height="auto" alt="Parking Details"> | <img src="screenshots/location_permissions.png" width="280" height="auto" alt="Permissions"> |
+|                                              Map View                                              |                                         Loading State                                          |
+|:--------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------:|
+|           <img src="screenshots/map_view.png" width="280" height="auto" alt="Map View">            |       <img src="screenshots/loading_state.png" width="280" height="auto" alt="Loading">        |
+|                                      **Parking Spot Details**                                      |                                    **Location Permissions**                                    |
+|  <img src="screenshots/parking_spot_details.png" width="280" height="auto" alt="Parking Details">  |  <img src="screenshots/location_permissions.png" width="280" height="auto" alt="Permissions">  |
 
 ## 🙏 Acknowledgments
 
