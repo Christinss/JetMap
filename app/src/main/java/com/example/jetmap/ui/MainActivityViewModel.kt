@@ -12,12 +12,18 @@ import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+
+data class MapUiState(
+    val isLoading: Boolean = false,
+    val parkingSpot: ParkingSpot? = null,
+    val parkingSpots: List<ParkingSpot> = emptyList(),
+)
 
 @HiltViewModel
 class MainActivityViewModel
@@ -25,16 +31,12 @@ class MainActivityViewModel
     private val parkingSpotsRepository: ParkingSpotsRepository,
     private val locationManager: LocationManager,
 ): ViewModel() {
+    private val _uiState = MutableStateFlow(MapUiState())
+    val uiState = _uiState.asStateFlow()
     private val _zoomTrigger = MutableSharedFlow<LatLng>()
-    val zoomTrigger: SharedFlow<LatLng> = _zoomTrigger
-    private val _parkingSpotsState: MutableStateFlow<List<ParkingSpot>> = MutableStateFlow(listOf())
-    val parkingSpotsState = _parkingSpotsState.asStateFlow()
-    private val _parkingSpotState: MutableStateFlow<ParkingSpot?> = MutableStateFlow(null)
-    val parkingSpotState = _parkingSpotState.asStateFlow()
+    val zoomTrigger = _zoomTrigger.asSharedFlow()
     private val _errorMessages = MutableSharedFlow<ErrorMessage>()
     val errorMessages = _errorMessages.asSharedFlow()
-    private val _loadingState: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val loadingState = _loadingState.asStateFlow()
     private var isFetching = false
 
     fun requestInitialLocationZoom() {
@@ -74,11 +76,11 @@ class MainActivityViewModel
     }
 
     fun selectParkingSpot(parkingSpot: ParkingSpot) {
-        _parkingSpotState.value = parkingSpot
+        _uiState.update { it.copy(parkingSpot = parkingSpot) }
     }
 
     fun clearSelectedParkingSpot() {
-        _parkingSpotState.value = null
+        _uiState.update { it.copy(parkingSpot = null) }
     }
 
     private fun fetchParkingSpotsWithinBoundingBox(
@@ -88,13 +90,13 @@ class MainActivityViewModel
 
         viewModelScope.launch {
             isFetching = true
-            _loadingState.value = true
+            _uiState.update { it.copy(isLoading = true) }
 
             try {
                 when (val result = parkingSpotsRepository.getParkingSpots(boundingBox)) {
                     is NetworkResult.Success -> {
                         result.data.let { response: ParkingSpotsResponse ->
-                            _parkingSpotsState.value = response.parkingSpots
+                            _uiState.update { it.copy(parkingSpots = response.parkingSpots) }
                         }
                     }
 
@@ -114,7 +116,7 @@ class MainActivityViewModel
                 }
             } finally {
                 isFetching = false
-                _loadingState.value = false
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }

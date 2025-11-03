@@ -73,16 +73,14 @@ fun GoogleMapView(
     val systemInsets = WindowInsets.systemBars
     val topPadding = systemInsets.asPaddingValues().calculateTopPadding()
     val bottomPadding = systemInsets.asPaddingValues().calculateBottomPadding()
-    val parkingSpots by viewModel.parkingSpotsState.collectAsStateWithLifecycle()
-    val selectedParkingSpot by viewModel.parkingSpotState.collectAsStateWithLifecycle()
-    val loadingState by viewModel.loadingState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var allParkingSpots by rememberSaveable { mutableStateOf<List<ParkingSpot>>(emptyList()) }
     var openBottomSheet by rememberSaveable { mutableStateOf(false) }
     var clusterToZoom by rememberSaveable { mutableStateOf<Cluster<ParkingSpot>?>(null) }
     var wasCameraMoving by remember { mutableStateOf(false) }
     val cameraPositionState = rememberCameraPositionState()
     val scope = rememberCoroutineScope()
-    val isLoading = !isMapLoaded || loadingState
+    val isLoading = !isMapLoaded || uiState.isLoading
     val loadingMessage = if (!isMapLoaded) stringResource(R.string.loading_map) else stringResource(R.string.loading_parking_spots)
 
     // Ensure Maps SDK is initialized
@@ -115,13 +113,13 @@ fun GoogleMapView(
             .launchIn(scope)
     }
 
-    LaunchedEffect(parkingSpots) {
-        if (parkingSpots.isNotEmpty()) {
-            Timber.d("Parking spots updated: ${parkingSpots.size} items")
-            parkingSpots.forEach { spot ->
+    LaunchedEffect(uiState.parkingSpots) {
+        if (uiState.parkingSpots.isNotEmpty()) {
+            Timber.d("Parking spots updated: ${uiState.parkingSpots.size} items")
+            uiState.parkingSpots.forEach { spot ->
                 Timber.d("Spot: ${spot.name} at ${spot.parkingSpotLocation.latitude}, ${spot.parkingSpotLocation.longitude}")
             }
-            allParkingSpots = parkingSpots
+            allParkingSpots = uiState.parkingSpots
         }
     }
 
@@ -247,7 +245,7 @@ fun GoogleMapView(
         }
     }
 
-    selectedParkingSpot?.let {
+    uiState.parkingSpot?.let {
         val uri = "geo:${it.parkingSpotLocation.latitude},${it.parkingSpotLocation.longitude}" +
                 "?q=${it.parkingSpotLocation.latitude},${it.parkingSpotLocation.longitude}"
         val intent = Intent(Intent.ACTION_VIEW, uri.toUri())
