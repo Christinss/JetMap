@@ -10,10 +10,16 @@ import com.example.jetmap.utils.AppConstants
 import com.example.jetmap.utils.NetworkResult
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -37,7 +43,12 @@ class MainActivityViewModel
     val zoomTrigger = _zoomTrigger.asSharedFlow()
     private val _errorMessages = MutableSharedFlow<ErrorMessage>()
     val errorMessages = _errorMessages.asSharedFlow()
-    private var isFetching = false
+    private val _mapBounds = MutableSharedFlow<String>(extraBufferCapacity = 1)
+
+
+    init {
+        observeMapBounds()
+    }
 
     fun requestInitialLocationZoom() {
         viewModelScope.launch {
@@ -53,26 +64,25 @@ class MainActivityViewModel
                     _errorMessages.emit(ErrorMessage.LocationFailed)
                 }
             } catch (e: Exception) {
-                Timber.e("Failed to get location for initial zoom: ${e.message}")
+                Timber.e(e, "Failed to get location for initial zoom")
                 _errorMessages.emit(ErrorMessage.LocationFailed)
             }
         }
     }
 
-    fun getMapBounds(
+    fun onMapBoundsChanged(
         topRightLat: Double,
         topRightLng: Double,
         bottomLeftLat: Double,
         bottomLeftLng: Double
     ) {
-        fetchParkingSpotsWithinBoundingBox(
-            listOf(
+        val boundingBox =listOf(
                 topRightLat,
                 topRightLng,
                 bottomLeftLat,
                 bottomLeftLng
             ).joinToString(AppConstants.ParkingApi.COORDINATE_SEPARATOR)
-        )
+        _mapBounds.tryEmit(boundingBox)
     }
 
     fun selectParkingSpot(parkingSpot: ParkingSpot) {
@@ -83,41 +93,50 @@ class MainActivityViewModel
         _uiState.update { it.copy(parkingSpot = null) }
     }
 
-    private fun fetchParkingSpotsWithinBoundingBox(
-        boundingBox: String
-    ) {
-        if (isFetching) return
-
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+    private fun observeMapBounds() {
         viewModelScope.launch {
-            isFetching = true
-            _uiState.update { it.copy(isLoading = true) }
-
-            try {
-                when (val result = parkingSpotsRepository.getParkingSpots(boundingBox)) {
-                    is NetworkResult.Success -> {
-                        result.data.let { response: ParkingSpotsResponse ->
-                            _uiState.update { it.copy(parkingSpots = response.parkingSpots) }
-                        }
-                    }
-
-                    is NetworkResult.Error -> {
-                        Timber.d("Error - ${result.code}: ${result.message}")
-                        result.message?.let { message ->
-                            _errorMessages.emit(ErrorMessage.NetworkErrorWithMessage(code = result.code, message = message))
-                        } ?: _errorMessages.emit(ErrorMessage.NetworkError)
-                    }
-
-                    is NetworkResult.Exception -> {
-                        Timber.d("Exception error - ${result.e.message}")
-                        result.e.message?.let { message ->
-                            _errorMessages.emit(ErrorMessage.NetworkExceptionWithMessage(message = message))
-                        } ?: _errorMessages.emit(ErrorMessage.NetworkException)
+            _mapBounds
+                .distinctUntilChanged()
+                .flatMapLatest { boundingBox ->
+                    flow {
+                        _uiState.update { it.copy(isLoading = true) }
+                        emit(parkingSpotsRepository.getParkingSpots(boundingBox))
                     }
                 }
-            } finally {
-                isFetching = false
-                _uiState.update { it.copy(isLoading = false) }
-            }
+                .catch { e -> handleNetworkException(e) }
+                .collect { result ->
+                    _uiState.update { it.copy(isLoading = false) }
+
+                    when (result) {
+                        is NetworkResult.Success -> handleParkingSpotsSuccess(result.data)
+                        is NetworkResult.Error -> handleNetworkError(result)
+                        is NetworkResult.Exception -> handleNetworkException(result.e)
+                    }
+                }
         }
+    }
+
+    private fun handleParkingSpotsSuccess(response: ParkingSpotsResponse) {
+        _uiState.update { it.copy(parkingSpots = response.parkingSpots) }
+        Timber.d("Fetched ${response.parkingSpots.size} parking spots")
+    }
+
+    private suspend fun handleNetworkError(result: NetworkResult.Error<*>) {
+        Timber.w("Network error - code: ${result.code}, message: ${result.message}")
+        val message = result.message?.let {
+            ErrorMessage.NetworkErrorInfo(code = result.code, message = it)
+        } ?: ErrorMessage.NetworkError
+
+        _errorMessages.emit(message)
+    }
+
+    private suspend fun handleNetworkException(e: Throwable) {
+        Timber.e(e, "Network exception occurred")
+        val message = e.message?.let {
+            ErrorMessage.NetworkExceptionInfo(it)
+        } ?: ErrorMessage.NetworkException
+
+        _errorMessages.emit(message)
     }
 }

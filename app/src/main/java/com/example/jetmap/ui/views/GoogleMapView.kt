@@ -142,7 +142,7 @@ fun GoogleMapView(
         // 2. Bottom sheet is not open
         if (wasCameraMoving && !cameraPositionState.isMoving && !openBottomSheet) {
             cameraPositionState.projection?.visibleRegion?.latLngBounds?.let { latLngBounds ->
-                viewModel.getMapBounds(
+                viewModel.onMapBoundsChanged(
                     latLngBounds.northeast.latitude,
                     latLngBounds.northeast.longitude,
                     latLngBounds.southwest.latitude,
@@ -157,9 +157,9 @@ fun GoogleMapView(
         viewModel.errorMessages.collect { error ->
             val message = when (error) {
                 is ErrorMessage.LocationFailed -> context.getString(R.string.error_location_failed)
-                is ErrorMessage.NetworkErrorWithMessage -> context.getString(R.string.error_network_message, error.code, error.message)
+                is ErrorMessage.NetworkErrorInfo -> context.getString(R.string.error_network_message, error.code, error.message)
                 is ErrorMessage.NetworkError -> context.getString(R.string.error_network_generic)
-                is ErrorMessage.NetworkExceptionWithMessage -> context.getString(R.string.exception_network_message, error.message)
+                is ErrorMessage.NetworkExceptionInfo -> context.getString(R.string.exception_network_message, error.message)
                 is ErrorMessage.NetworkException -> context.getString(R.string.exception_network_generic)
             }
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -180,7 +180,7 @@ fun GoogleMapView(
             onMapLoaded = {
                 onMapLoaded()
                 cameraPositionState.projection?.visibleRegion?.latLngBounds?.let { latLngBounds ->
-                    viewModel.getMapBounds(
+                    viewModel.onMapBoundsChanged(
                         latLngBounds.northeast.latitude,
                         latLngBounds.northeast.longitude,
                         latLngBounds.southwest.latitude,
